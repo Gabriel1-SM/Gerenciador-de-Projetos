@@ -6,7 +6,6 @@ import '../widgets/stats_card.dart';
 import 'add_project_screen.dart';
 import 'people_screen.dart';
 
-// Tela principal do aplicativo - Dashboard
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -15,62 +14,50 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
-  // Serviço para operações de banco de dados
   final DatabaseService _databaseService = DatabaseService();
-  
-  // Lista de projetos carregados
   List<Project> _projects = [];
-  
-  // Estatísticas do sistema
   Map<String, int> _stats = {};
 
   @override
   void initState() {
     super.initState();
-    // Adiciona observador para detectar mudanças no ciclo de vida do app
     WidgetsBinding.instance.addObserver(this);
-    _loadData(); // Carrega dados ao iniciar
+    _loadData();
   }
 
   @override
   void dispose() {
-    // Remove observador ao sair da tela
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  // Detecta quando o app volta para primeiro plano
+  // ATUALIZA QUANDO O APP VOLTA PARA PRIMEIRO PLANO
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       print('🔄 App retornou - atualizando dados...');
-      _loadData(); // Atualiza dados quando app retorna
+      _loadData();
     }
   }
 
-  // Carrega projetos e estatísticas do banco
   Future<void> _loadData() async {
     try {
       print('🔄 HomeScreen: Carregando dados...');
-      
-      // Busca dados em paralelo
       final projects = await _databaseService.getProjects();
       final stats = await _databaseService.getStats();
       
       if (mounted) {
         setState(() {
           _projects = projects;
-          // Garante que todos os valores de estatística existem
           _stats = {
-            'totalProjects': stats['totalProjects'] ?? 0,
-            'totalPeople': stats['totalPeople'] ?? 0,
-            'completedProjects': stats['completedProjects'] ?? 0,
-            'inProgressProjects': stats['inProgressProjects'] ?? 0,
-            'pendingProjects': stats['pendingProjects'] ?? 0,
-          };
+  'totalProjects': stats['totalProjects'] ?? 0,
+  'totalPeople': stats['totalPeople'] ?? 0,
+  'completedProjects': stats['completedProjects'] ?? 0,
+  'inProgressProjects': stats['inProgressProjects'] ?? 0,
+  'pendingProjects': stats['pendingProjects'] ?? 0,
+};
         });
       }
-      
       print('✅ HomeScreen: Dados carregados - ${projects.length} projetos, ${stats['totalPeople']} pessoas');
     } catch (e) {
       print('❌ HomeScreen: Erro ao carregar dados: $e');
@@ -86,19 +73,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: [
-          // Botão para acessar tela de pessoas
           IconButton(
             icon: Icon(Icons.people),
             onPressed: _goToPeople,
             tooltip: 'Equipe',
           ),
-          // Botão para atualizar manualmente
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: _loadData,
             tooltip: 'Atualizar',
           ),
-          // Botão para informações de debug
+          // Botão de debug (opcional)
           IconButton(
             icon: Icon(Icons.bug_report),
             onPressed: _debugInfo,
@@ -107,7 +92,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ],
       ),
       body: _buildBody(),
-      // Botão para adicionar novo projeto
       floatingActionButton: FloatingActionButton(
         onPressed: _addProject,
         child: Icon(Icons.add, size: 28),
@@ -116,30 +100,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Constrói o corpo principal da tela
   Widget _buildBody() {
     return RefreshIndicator(
-      onRefresh: _loadData, // Puxar para baixo atualiza
+      onRefresh: _loadData,
       child: CustomScrollView(
         slivers: [
-          // Seção de estatísticas (widget fixo)
+          // ESTATÍSTICAS
           SliverToBoxAdapter(
             child: _buildStatsSection(),
           ),
           
-          // Cabeçalho da seção de projetos
+          // PROJETOS RECENTES
           SliverToBoxAdapter(
             child: _buildProjectsHeader(),
           ),
           
-          // Lista de projetos
+          // LISTA DE PROJETOS
           _projects.isEmpty
               ? SliverToBoxAdapter(child: _buildEmptyState())
               : SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final project = _projects[index];
-                      // Usa widget reutilizável para cada projeto
                       return ProjectCard(
                         project: project,
                         onEdit: () => _editProject(project),
@@ -154,7 +136,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Seção de cartões de estatísticas
   Widget _buildStatsSection() {
     return Padding(
       padding: EdgeInsets.all(16),
@@ -170,11 +151,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           ),
           SizedBox(height: 12),
-          // Grid 2x2 com cartões de estatística
           GridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(), // Não rola internamente
+            physics: NeverScrollableScrollPhysics(),
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
             childAspectRatio: 1.4,
@@ -205,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ],
           ),
-          // Informações de debug
+          // DEBUG INFO (opcional - remove depois)
           SizedBox(height: 16),
           _buildDebugInfo(),
         ],
@@ -213,7 +193,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Widget para mostrar informações de debug
   Widget _buildDebugInfo() {
     return Container(
       padding: EdgeInsets.all(12),
@@ -243,7 +222,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Cabeçalho da seção de projetos
   Widget _buildProjectsHeader() {
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
@@ -271,7 +249,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Estado quando não há projetos
   Widget _buildEmptyState() {
     return Padding(
       padding: EdgeInsets.all(32),
@@ -301,7 +278,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           ),
           SizedBox(height: 20),
-          // Botão para recarregar manualmente
           ElevatedButton.icon(
             onPressed: _loadData,
             icon: Icon(Icons.refresh),
@@ -312,21 +288,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Navega para tela de pessoas
   void _goToPeople() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => PeopleScreen()),
     );
 
-    // Se recebeu algum valor (notificação de alteração)
+    // SE RECEBEU TRUE OU QUALQUER VALOR, ATUALIZA OS DADOS
     if (result != null) {
       print('🔄 HomeScreen: Recebeu notificação da tela de pessoas - atualizando!');
-      await _loadData(); // Atualiza dados
+      await _loadData();
     }
   }
 
-  // Abre tela para adicionar novo projeto
   void _addProject() async {
     final result = await Navigator.push(
       context,
@@ -336,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (result != null && result is Project) {
       try {
         await _databaseService.addProject(result);
-        await _loadData(); // Atualiza dados
+        await _loadData(); // FORÇA ATUALIZAÇÃO
         _showSuccess('Projeto criado!');
       } catch (e) {
         _showError('Erro ao criar projeto: $e');
@@ -344,7 +318,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  // Abre tela para editar projeto existente
   void _editProject(Project project) async {
     final result = await Navigator.push(
       context,
@@ -353,8 +326,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     if (result != null && result is Project) {
       try {
-        await _databaseService.updateProject(result.id!, result);
-        await _loadData(); // Atualiza dados
+       await _databaseService.updateProject(result.id!, result);
+        await _loadData(); // FORÇA ATUALIZAÇÃO
         _showSuccess('Projeto atualizado!');
       } catch (e) {
         _showError('Erro ao atualizar projeto: $e');
@@ -362,7 +335,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  // Solicita confirmação e exclui projeto
   void _deleteProject(Project project) {
     showDialog(
       context: context,
@@ -379,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               Navigator.pop(context);
               try {
                 await _databaseService.deleteProject(project.id!);
-                await _loadData(); // Atualiza dados
+                await _loadData(); // FORÇA ATUALIZAÇÃO
                 _showSuccess('Projeto excluído com sucesso!');
               } catch (e) {
                 _showError('Erro ao excluir projeto: $e');
@@ -392,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Método para debug - mostra informações no console
+  // MÉTODO DE DEBUG
   void _debugInfo() {
     print('\n=== HOME SCREEN DEBUG ===');
     print('Projetos no estado: ${_projects.length}');
@@ -403,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
     print('========================\n');
     
-    // Mostra snackbar com informações
+    // Mostra snackbar de debug
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Debug: ${_projects.length} projetos, ${_stats['totalPeople'] ?? 0} pessoas'),
@@ -413,7 +385,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Mostra mensagem de sucesso
   void _showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -425,7 +396,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Mostra mensagem de erro
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

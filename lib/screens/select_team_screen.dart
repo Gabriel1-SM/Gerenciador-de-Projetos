@@ -3,7 +3,6 @@ import '../services/database_service.dart';
 import '../models/person.dart';
 
 class SelectTeamScreen extends StatefulWidget {
-  // Lista de IDs já selecionados (vinda da tela anterior)
   final List<int> selectedMembers;
 
   const SelectTeamScreen({Key? key, required this.selectedMembers}) : super(key: key);
@@ -13,23 +12,17 @@ class SelectTeamScreen extends StatefulWidget {
 }
 
 class _SelectTeamScreenState extends State<SelectTeamScreen> {
-  // Instância do serviço de banco de dados
   final DatabaseService _databaseService = DatabaseService();
-  // Lista de todas as pessoas disponíveis
   List<Person> _people = [];
-  // Lista de IDs das pessoas selecionadas
   List<int> _selectedMembers = [];
 
   @override
   void initState() {
     super.initState();
     _selectedMembers = List.from(widget.selectedMembers);
-    
-    // Carrega as pessoas do banco de dados
     _loadPeople();
   }
 
-  // Carrega todas as pessoas cadastradas
   Future<void> _loadPeople() async {
     try {
       final people = await _databaseService.getPeople();
@@ -41,16 +34,16 @@ class _SelectTeamScreenState extends State<SelectTeamScreen> {
     }
   }
 
-  // Alterna a seleção de uma pessoa (seleciona/deseleciona)
   void _toggleSelection(int personId) {
     setState(() {
       if (_selectedMembers.contains(personId)) {
-        _selectedMembers.remove(personId); // Remove se já estiver selecionado
+        _selectedMembers.remove(personId);
       } else {
-        _selectedMembers.add(personId); // Adiciona se não estiver selecionado
+        _selectedMembers.add(personId);
       }
     });
   }
+
   void _saveSelection() {
     Navigator.pop(context, _selectedMembers);
   }
@@ -75,15 +68,14 @@ class _SelectTeamScreenState extends State<SelectTeamScreen> {
     );
   }
 
-  // Constrói o corpo principal da tela
   Widget _buildBody() {
-    // Se não há pessoas, mostra estado vazio
     if (_people.isEmpty) {
       return _buildEmptyState();
     }
-    // Se há pessoas, mostra a lista com contador
+
     return Column(
       children: [
+        // Header com contador
         Container(
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -105,7 +97,7 @@ class _SelectTeamScreenState extends State<SelectTeamScreen> {
           ),
         ),
         
-        // Lista rolável de pessoas
+        // Lista de pessoas
         Expanded(
           child: ListView.builder(
             padding: EdgeInsets.all(8),
@@ -122,11 +114,9 @@ class _SelectTeamScreenState extends State<SelectTeamScreen> {
     );
   }
 
-  // Constrói o item de lista para uma pessoa
   Widget _buildPersonItem(Person person, bool isSelected) {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      // Cor diferente se a pessoa está selecionada
       color: isSelected ? Colors.blue[50] : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
@@ -136,7 +126,6 @@ class _SelectTeamScreenState extends State<SelectTeamScreen> {
         ),
       ),
       child: ListTile(
-        // Avatar com a primeira letra do nome
         leading: CircleAvatar(
           backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
           child: Text(
@@ -178,7 +167,6 @@ class _SelectTeamScreenState extends State<SelectTeamScreen> {
     );
   }
 
-  // Constrói o estado vazio (quando não há pessoas)
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -210,7 +198,6 @@ class _SelectTeamScreenState extends State<SelectTeamScreen> {
               ),
             ),
             SizedBox(height: 24),
-            // Botão para voltar
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.pop(context); // Volta para tela anterior

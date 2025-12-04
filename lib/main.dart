@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 import 'package:gerenciador_projetos/services/database_service.dart';
 
-// Função principal que inicia o aplicativo
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(); //garantia que o Flutter está inicializado
+  
+  // Inicializar DatabaseService
   try {
     await DatabaseService.initialize();
     print('✅ DatabaseService inicializado com sucesso!');
@@ -12,19 +13,13 @@ void main() async {
     print('❌ Erro ao inicializar DatabaseService: $e');
   }
   
-  // Executa o aplicativo
   runApp(MyApp());
 }
-
-// Classe principal do aplicativo que define a estrutura básica
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // Título do aplicativo
       title: 'Gerenciador de Projetos',
-      
-      // Configuração do tema visual
       theme: ThemeData(
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF8F9FA),
@@ -41,8 +36,6 @@ class MyApp extends StatelessWidget {
         ),
         fontFamily: 'Roboto',
       ),
-      
-      // Define a tela inicial do aplicativo
       home: HomeScreen(),
       debugShowCheckedModeBanner: false,
     );
