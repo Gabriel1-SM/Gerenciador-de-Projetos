@@ -3,6 +3,7 @@ import '../services/database_service.dart';
 import '../models/person.dart';
 import 'add_person_screen.dart';
 
+// Tela para gerenciamento de pessoas/equipe
 class PeopleScreen extends StatefulWidget {
   const PeopleScreen({Key? key}) : super(key: key);
 
@@ -12,6 +13,8 @@ class PeopleScreen extends StatefulWidget {
 
 class _PeopleScreenState extends State<PeopleScreen> {
   final DatabaseService _databaseService = DatabaseService();
+  
+  // Lista de pessoas carregadas do banco
   List<Person> _people = [];
 
   @override
@@ -20,12 +23,15 @@ class _PeopleScreenState extends State<PeopleScreen> {
     _loadPeople();
   }
 
+  // Carrega pessoas do banco de dados
   Future<void> _loadPeople() async {
     try {
       final people = await _databaseService.getPeople();
+      
+      // Verifica se o widget ainda está montado (evita erros após sair da tela)
       if (mounted) {
         setState(() {
-          _people = people;
+          _people = people; // Atualiza a lista de pessoas
         });
       }
     } catch (e) {
@@ -41,6 +47,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
           'Equipe',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
+        // Botão para recarregar manualmente
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
@@ -49,7 +56,9 @@ class _PeopleScreenState extends State<PeopleScreen> {
           ),
         ],
       ),
-      body: _buildBody(),
+      body: _buildBody(), // Conteúdo principal da tela
+      
+      // Botão flutuante para adicionar nova pessoa
       floatingActionButton: FloatingActionButton(
         onPressed: _addPerson,
         child: Icon(Icons.person_add),
@@ -58,24 +67,26 @@ class _PeopleScreenState extends State<PeopleScreen> {
     );
   }
 
+  // Constrói o corpo da tela baseado no estado
   Widget _buildBody() {
+    // Se não há pessoas, mostra estado vazio
     if (_people.isEmpty) {
       return _buildEmptyState();
     }
-
     return RefreshIndicator(
-      onRefresh: _loadPeople,
+      onRefresh: _loadPeople, // Recarrega ao puxar a lista para baixo
       child: ListView.builder(
         padding: EdgeInsets.only(top: 8, bottom: 80),
         itemCount: _people.length,
         itemBuilder: (context, index) {
           final person = _people[index];
-          return _buildPersonCard(person);
+          return _buildPersonCard(person); // Card para cada pessoa
         },
       ),
     );
   }
 
+  // Widget para exibir cada pessoa na lista
   Widget _buildPersonCard(Person person) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -93,6 +104,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
       child: Material(
         color: Colors.transparent,
         child: ListTile(
+          // Avatar com primeira letra do nome
           leading: CircleAvatar(
             backgroundColor: Colors.blue[100],
             child: Text(
@@ -103,6 +115,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
               ),
             ),
           ),
+          
+          // Nome da pessoa
           title: Text(
             person.name,
             style: TextStyle(
@@ -110,6 +124,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
+          
+          // Email e cargo
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -123,6 +139,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
               ),
             ],
           ),
+          
+          // Menu de opções (editar/excluir)
           trailing: PopupMenuButton<String>(
             icon: Icon(Icons.more_vert, color: Colors.grey[600]),
             onSelected: (value) {
@@ -152,12 +170,15 @@ class _PeopleScreenState extends State<PeopleScreen> {
               ),
             ],
           ),
+          
+          // Tocar no card também abre a edição
           onTap: () => _editPerson(person),
         ),
       ),
     );
   }
 
+  // Tela quando não há pessoas cadastradas
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -194,19 +215,19 @@ class _PeopleScreenState extends State<PeopleScreen> {
     );
   }
 
+  // Navega para tela de adicionar pessoa
   void _addPerson() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AddPersonScreen()),
     );
-
     if (result != null && result is Person) {
       try {
+        // Adiciona pessoa ao banco
         await _databaseService.addPerson(result);
         await _loadPeople();
-        _showSuccess('Pessoa adicionada!');
-        
-        // NOTIFICA A HOME SCREEN PARA ATUALIZAR
+        _showSuccess('Pessoa adicionada!'); 
+        // Notifica a tela anterior (HomeScreen) para atualizar estatísticas
         Navigator.pop(context, true);
       } catch (e) {
         _showError('Erro ao adicionar pessoa: $e');
@@ -214,16 +235,25 @@ class _PeopleScreenState extends State<PeopleScreen> {
     }
   }
 
+  // Navega para tela de editar pessoa existente
   void _editPerson(Person person) async {
+    // Abre tela de edição passando a pessoa atual
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => AddPersonScreen(person: person)),
+      MaterialPageRoute(
+        builder: (context) => AddPersonScreen(person: person)
+      ),
     );
 
+    // Se retornou uma pessoa atualizada
     if (result != null && result is Person) {
       try {
+        // Atualiza pessoa no banco
         await _databaseService.updatePerson(result.id!, result);
+        
+        // Recarrega a lista
         await _loadPeople();
+        
         _showSuccess('Pessoa atualizada!');
       } catch (e) {
         _showError('Erro ao atualizar pessoa: $e');
@@ -231,26 +261,34 @@ class _PeopleScreenState extends State<PeopleScreen> {
     }
   }
 
+  // Exclui uma pessoa com confirmação
   void _deletePerson(Person person) {
+    // Mostra diálogo de confirmação
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Excluir Pessoa'),
         content: Text('Tem certeza que deseja excluir "${person.name}"?'),
         actions: [
+          // Botão cancelar
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text('Cancelar'),
           ),
+          
+          // Botão confirmar exclusão
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               try {
+                // Exclui pessoa do banco
                 await _databaseService.deletePerson(person.id!);
-                await _loadPeople();
-                _showSuccess('Pessoa excluída!');
                 
-                // NOTIFICA A HOME SCREEN PARA ATUALIZAR
+                // Recarrega a lista
+                await _loadPeople();
+                
+                _showSuccess('Pessoa excluída!');
+
                 Navigator.pop(context, true);
               } catch (e) {
                 _showError('Erro ao excluir pessoa: $e');
@@ -263,6 +301,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
     );
   }
 
+  // Mostra mensagem de sucesso temporária
   void _showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -274,6 +313,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
     );
   }
 
+  // Mostra mensagem de erro temporária
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

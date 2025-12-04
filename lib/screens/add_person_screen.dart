@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/person.dart';
 
+// Tela para adicionar ou editar pessoas
 class AddPersonScreen extends StatefulWidget {
-  final Person? person;
+  final Person? person; // Pessoa existente para edição, null para nova
 
   const AddPersonScreen({Key? key, this.person}) : super(key: key);
 
@@ -11,14 +12,18 @@ class AddPersonScreen extends StatefulWidget {
 }
 
 class _AddPersonScreenState extends State<AddPersonScreen> {
+  // Controladores para os campos de texto
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  
+  // Estado para o cargo selecionado
   String _role = 'Desenvolvedor';
 
   @override
   void initState() {
     super.initState();
+    // Se está editando uma pessoa, preenche os campos com dados existentes
     if (widget.person != null) {
       _nameController.text = widget.person!.name;
       _emailController.text = widget.person!.email;
@@ -32,10 +37,12 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
+          // Título dinâmico baseado no modo (adicionar/editar)
           widget.person == null ? 'Nova Pessoa' : 'Editar Pessoa',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: [
+          // Botão de salvar no canto superior direito
           IconButton(
             icon: Icon(Icons.check),
             onPressed: _savePerson,
@@ -48,6 +55,7 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
+              // Campo: Nome completo
               _buildTextField(
                 controller: _nameController,
                 label: 'Nome Completo',
@@ -55,6 +63,8 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
                 icon: Icons.person,
               ),
               SizedBox(height: 16),
+              
+              // Campo: E-mail
               _buildTextField(
                 controller: _emailController,
                 label: 'E-mail',
@@ -63,6 +73,8 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
                 keyboardType: TextInputType.emailAddress,
               ),
               SizedBox(height: 16),
+              
+              // Campo: Telefone
               _buildTextField(
                 controller: _phoneController,
                 label: 'Telefone',
@@ -71,8 +83,12 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
                 keyboardType: TextInputType.phone,
               ),
               SizedBox(height: 16),
+              
+              // Campo: Cargo (dropdown)
               _buildRoleField(),
               SizedBox(height: 32),
+              
+              // Botão principal de salvar
               _buildSaveButton(),
             ],
           ),
@@ -81,6 +97,7 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
     );
   }
 
+  // Widget reutilizável para campos de texto
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -122,6 +139,7 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
     );
   }
 
+  // Widget para seleção de cargo
   Widget _buildRoleField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,12 +164,13 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
             title: Text(_role),
             trailing: DropdownButton<String>(
               value: _role,
-              underline: Container(),
+              underline: Container(), // Remove linha padrão
               onChanged: (String? newValue) {
                 setState(() {
-                  _role = newValue!;
+                  _role = newValue!; // Atualiza cargo selecionado
                 });
               },
+              // Lista de cargos disponíveis
               items: <String>[
                 'Desenvolvedor',
                 'Designer',
@@ -173,6 +192,7 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
     );
   }
 
+  // Botão principal de salvar
   Widget _buildSaveButton() {
     return SizedBox(
       width: double.infinity,
@@ -186,6 +206,7 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
           ),
         ),
         child: Text(
+          // Texto dinâmico baseado no modo
           widget.person == null ? 'SALVAR PESSOA' : 'ATUALIZAR PESSOA',
           style: TextStyle(
             fontSize: 16,
@@ -197,7 +218,9 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
     );
   }
 
+  // Valida e salva a pessoa
   void _savePerson() {
+    // Validação dos campos obrigatórios
     if (_nameController.text.isEmpty) {
       _showError('Digite o nome da pessoa');
       return;
@@ -207,18 +230,21 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
       return;
     }
 
+    // Cria objeto Person com dados do formulário
     final person = Person(
-      id: widget.person?.id,
+      id: widget.person?.id, // Mantém ID se estiver editando
       name: _nameController.text,
       email: _emailController.text,
       role: _role,
       phone: _phoneController.text,
-      createdAt: widget.person?.createdAt ?? DateTime.now(),
+      createdAt: widget.person?.createdAt ?? DateTime.now(), // Nova data ou mantém original
     );
 
+    // Retorna a pessoa para a tela anterior
     Navigator.pop(context, person);
   }
 
+  // Mostra mensagem de erro
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

@@ -17,7 +17,7 @@ class Project {
     required this.teamMembers,
   });
 
-  // CORRIGIDO: factory (não actory)
+  // CORRIGIDO: factory
   factory Project.fromMap(Map<String, dynamic> map) {
     // Corrige a conversão de teamMembers
     List<int> teamMembers = [];
